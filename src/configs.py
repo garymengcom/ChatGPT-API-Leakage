@@ -69,6 +69,7 @@ KEYWORDS = [
     "语言模型",
 ]
 
+# https://github.com/github-linguist/linguist/blob/main/lib/linguist/languages.yml
 LANGUAGES = [
     "Dotenv",
     "Text",
@@ -83,6 +84,13 @@ LANGUAGES = [
     "Go",
     "C%2B%2B",
     "PHP",
+    "Ruby",
+    "C%23",
+    "Swift",
+    "Rust",
+    "Kotlin",
+    "Perl",
+    "Scala",
 ]
 
 # regex, have_many_results, result_too_lang
