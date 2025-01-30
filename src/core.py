@@ -131,9 +131,9 @@ class APIKeyLeakageScanner:
             while retry <= 3:
                 matches = []
                 for regex in self.regexes:
-                    matches.extend(regex.finditer(self.driver.page_source))
+                    matches.extend(regex.findall(self.driver.page_source))
 
-                api_keys = list(set(m.group(1) for m in matches if m.group(1)))
+                api_keys = list(set(matches))
 
                 if len(api_keys) == 0:
                     rich.print(f"    ⚪️ No matches found in the expanded page, retrying [{retry}/3]...")
