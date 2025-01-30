@@ -76,6 +76,7 @@ class APIKeyLeakageScanner:
 
         self.driver.get(url)
         apis_found = []
+        apis_found2 = []
         urls_need_expand = []
 
         while True: # Loop until all the pages are processed
@@ -104,6 +105,8 @@ class APIKeyLeakageScanner:
                     # get the <a> tag
                     a_tag = element.find_element(by=By.XPATH, value=".//a")
                     urls_need_expand.append(a_tag.get_attribute("href"))
+
+                ApiKeyDao.batch_add(self.website_name, apis)
                 apis_found.extend(apis)
 
             rich.print(f"🌕 There are {len(urls_need_expand)} urls waiting to be expanded")
@@ -144,24 +147,12 @@ class APIKeyLeakageScanner:
                 new_apis = [api for api in api_keys if not ApiKeyDao.key_exists(self.website_name, api)]
                 new_apis = list(set(new_apis))
                 apis_found.extend(new_apis)
+                ApiKeyDao.batch_add(self.website_name, new_apis)
                 rich.print(f"    🟢 Found {len(api_keys)} api_keys in the expanded page, adding them to the list")
                 for k in api_keys:
                     rich.print(f"        '{k}'")
+
                 break
-
-        self.check_api_keys_and_save(apis_found)
-
-    def check_api_keys_and_save(self, keys: list[str]):
-        """
-        Check a list of API keys
-        """
-        unique_keys = list(set(keys))
-        unique_keys = [api for api in unique_keys if not ApiKeyDao.key_exists(self.website_name, api)]
-
-        with ThreadPoolExecutor(max_workers=10) as executor:
-            validate_results = list(executor.map(self.validator.validate, unique_keys))
-            for idx, result in enumerate(validate_results):
-                ApiKeyDao.add_one(self.website_name, unique_keys[idx], result)
 
     def search(self):
         """
