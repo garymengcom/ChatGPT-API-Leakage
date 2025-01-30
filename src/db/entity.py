@@ -15,7 +15,7 @@ class ApiKey(Base):
     api_key = Column(String(512), nullable=False)
     status = Column(Integer, nullable=False, default=ApiKeyStatus.ADDED.value)
     remaining = Column(Integer, nullable=False, default=0)
-    last_checked_at = Column(DateTime, nullable=False, default=datetime.datetime.now, server_default=func.current_timestamp())
+    last_validated_at = Column(DateTime, nullable=False, default=datetime.datetime.now, server_default=func.current_timestamp())
 
     created_at = Column(DateTime, nullable=False, default=datetime.datetime.now, server_default=func.current_timestamp())
     updated_at = Column(DateTime, nullable=False, default=datetime.datetime.now, server_default=func.current_timestamp(), onupdate=datetime.datetime.now)

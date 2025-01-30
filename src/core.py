@@ -30,7 +30,7 @@ class APIKeyLeakageScanner:
 
         self.candidate_urls = []
         self.website_name = website["name"]
-        self.validator = website["validator"]
+        self.validator = website["validator"]()
         self.regexes: List[Pattern] = [re.compile(r) for r in website["regexes"]]
 
         for r in self.regexes:
@@ -159,7 +159,7 @@ class APIKeyLeakageScanner:
         unique_keys = [api for api in unique_keys if not ApiKeyDao.key_exists(self.website_name, api)]
 
         with ThreadPoolExecutor(max_workers=10) as executor:
-            validate_results = list(executor.map(self.validator, unique_keys))
+            validate_results = list(executor.map(self.validator.validate, unique_keys))
             for idx, result in enumerate(validate_results):
                 ApiKeyDao.add_one(self.website_name, unique_keys[idx], result)
 
@@ -184,12 +184,12 @@ class APIKeyLeakageScanner:
     def valid_existed_keys(self):
         last_id = 0
         while True:
-            keys = get_all_keys(self.website_name, last_id=last_id)
+            keys = ApiKeyDao.get_all_keys(self.website_name, last_id=last_id)
             if not keys:
                 break
 
             for key in tqdm(keys, desc="🔄 Updating existed keys ..."):
-                result = self.validator(key.api_key)
+                result = self.validator.validate(key.api_key)
                 ApiKeyDao.update_one(key.id, result)
 
             last_id = keys[-1].id

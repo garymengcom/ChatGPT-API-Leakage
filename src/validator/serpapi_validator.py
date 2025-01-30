@@ -6,9 +6,9 @@ from src.validator.base import BaseValidator
 
 
 class SerpApiValidator(BaseValidator):
-    def validate(self) -> ValidatedResult:
+    def validate(self, key: str) -> ValidatedResult:
         return ValidatedResult(
-            key="serpapi-key",
+            key=key,
             valid=True,
             remaining=1000,
         )
