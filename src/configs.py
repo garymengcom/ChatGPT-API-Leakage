@@ -3,74 +3,12 @@ This module is used to store the configurations.
 """
 import os
 import re
+from pathlib import Path
+
+LOG_DIR = Path(__file__).parent.parent.joinpath("tmp").joinpath("logs")
 
 SELENIUM_REMOTE_ENABLED = os.getenv("SELENIUM_REMOTE_ENABLED", "False").lower() == "true"
 SELENIUM_CHROME_BASE_URL = os.getenv("SELENIUM_CHROME_BASE_URL", "http://192.168.1.110:4444")
-
-KEYWORDS = [
-    "CoT",
-    "DPO",
-    "RLHF",
-    "agent",
-    "ai model",
-    "aios",
-    "api key",
-    "apikey",
-    "artificial intelligence",
-    "chain of thought",
-    "chatbot",
-    "chatgpt",
-    "competitor analysis",
-    "content strategy",
-    "conversational AI",
-    "data analysis",
-    "deep learning",
-    "direct preference optimization",
-    "experiment",
-    "gpt",
-    "gpt-3",
-    "gpt-4",
-    "gpt4",
-    "gpt-4o",
-    "gpt-4o-mini",
-    "gpt-4-turbo",
-    "dall-e-3",
-    "dall-e-2",
-    "tts-1",
-    "whisper-1",
-    "fine_tuning",
-    "completions",
-    "text-embedding-3-large",
-    "text-embedding-3-small",
-    "text-embedding-ada-002",
-    "key",
-    "keyword clustering",
-    "keyword research",
-    "lab",
-    "language model experimentation",
-    "large language model",
-    "llama.cpp",
-    "llm",
-    "long-tail keywords",
-    "machine learning",
-    "multi-agent",
-    "multi-agent systems",
-    "natural language processing",
-    "openai",
-    "personalized AI",
-    "project",
-    "rag",
-    "reinforcement learning from human feedback",
-    "retrieval-augmented generation",
-    "search intent",
-    "semantic search",
-    "thoughts",
-    "virtual assistant",
-    "实验",
-    "密钥",
-    "测试",
-    "语言模型",
-]
 
 # https://github.com/github-linguist/linguist/blob/main/lib/linguist/languages.yml
 LANGUAGES = [
