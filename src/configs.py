@@ -20,10 +20,11 @@ WEBSITES = [
     {
         "name": "serpapi",
         "regexes": [
-            "SERPAPI_KEY\s*=\s*os\.getenv\(['\"]SERPAPI_KEY['\"],\s['\"](\w{64})['\"]",
             "SERPAPI_KEY\s*=\s*['\"]?(\w{64})['\"]?",
-            "SERPAPI_API_KEY\s*=\s*os\.getenv\(['\"]SERPAPI_API_KEY['\"],\s['\"](\w{64})['\"]",
+            "SERPAPI_KEY\s*=\s*os\.getenv\(['\"]SERPAPI_KEY['\"],\s['\"](\w{64})['\"]",
             "SERPAPI_API_KEY\s*=\s*['\"]?(\w{64})['\"]?",
+            "SERPAPI_API_KEY\s*=\s*os\.getenv\(['\"]SERPAPI_API_KEY['\"],\s['\"](\w{64})['\"]",
+
         ],
         "validator": SerpApiValidator
     }
