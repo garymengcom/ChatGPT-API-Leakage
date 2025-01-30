@@ -1,8 +1,11 @@
 """
 This module is used to store the configurations.
 """
-
+import os
 import re
+
+SELENIUM_REMOTE_ENABLED = os.getenv("SELENIUM_REMOTE_ENABLED", "False").lower() == "true"
+SELENIUM_CHROME_BASE_URL = os.getenv("SELENIUM_CHROME_BASE_URL", "http://192.168.1.110:4444")
 
 KEYWORDS = [
     "CoT",

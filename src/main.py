@@ -6,7 +6,9 @@ import logging
 import os
 import time
 from concurrent.futures import ThreadPoolExecutor
-
+from urllib.parse import urljoin
+from selenium.webdriver.chrome.service import Service
+from webdriver_manager.chrome import ChromeDriverManager
 import rich
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -14,7 +16,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 from tqdm import tqdm
 
-from configs import KEYWORDS, REGEX_LIST, LANGUAGES
+from configs import KEYWORDS, REGEX_LIST, LANGUAGES, SELENIUM_REMOTE_ENABLED, SELENIUM_CHROME_BASE_URL
 from manager import CookieManager, DatabaseManager, ProgressManager
 from utils import check_key
 
@@ -58,7 +60,12 @@ class APIKeyLeakageScanner:
         options.add_argument("--ignore-certificate-errors")
         options.add_argument("--ignore-ssl-errors")
 
-        self.driver = webdriver.Chrome(options=options)
+        if SELENIUM_REMOTE_ENABLED:
+            self.driver = webdriver.Remote(urljoin(SELENIUM_CHROME_BASE_URL, '/wd/hub'), options=options)
+        else:
+            service = Service(ChromeDriverManager().install())
+            self.driver = webdriver.Chrome(service=service, options=options)
+
         self.driver.implicitly_wait(3)
 
         self.cookies = CookieManager(self.driver)
@@ -68,7 +75,7 @@ class APIKeyLeakageScanner:
 
         if not cookie_exists:
             rich.print("🤗 No cookies found, please login to GitHub first")
-            input("Press Enter after you logged in: ")
+            input("Press Enter after you logged in [Enter]? ")
             self.cookies.save()
         else:
             rich.print("🍪 Cookies found, loading cookies")
