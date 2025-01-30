@@ -1,7 +1,8 @@
 import logging
-import os
+import re
 import time
 from concurrent.futures import ThreadPoolExecutor
+from typing import Pattern, List
 from urllib.parse import urljoin
 from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
@@ -12,34 +13,28 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 from tqdm import tqdm
 
-from src.configs import REGEX_LIST, SELENIUM_REMOTE_ENABLED, SELENIUM_CHROME_BASE_URL
-from src.manager.db_manager import DatabaseManager
+from src.configs import SELENIUM_REMOTE_ENABLED, SELENIUM_CHROME_BASE_URL, COOKIE_FILE
+from src.db.dao import ApiKeyDao
 from src.manager.cookie_manager import CookieManager
 from src.manager.progress_manager import ProgressManager
-from src.utils import check_key
 
 
 class APIKeyLeakageScanner:
     """
     Scan GitHub for available OpenAI API Keys
     """
-    def __init__(self, db_file: str, languages: list):
-        self.db_file = db_file
+    def __init__(self, website: dict):
         self.progress = ProgressManager()
         self.driver: webdriver.Chrome | None = None
         self.cookies: CookieManager | None = None
-        rich.print(f"📂 Opening database file {self.db_file}")
 
-        self.dbmgr = DatabaseManager(self.db_file)
-
-        self.languages = languages
         self.candidate_urls = []
-        for regex, too_many_results, _ in REGEX_LIST:
-            for language in self.languages:
-                if too_many_results: # if the regex is too many results, then we need to add AND condition
-                    self.candidate_urls.append(f"https://github.com/search?q=(/{regex.pattern}/)+language:{language}&type=code&ref=advsearch")
-                else: # if the regex is not too many results, then we just need the regex
-                    self.candidate_urls.append(f"https://github.com/search?q=(/{regex.pattern}/)&type=code&ref=advsearch")
+        self.website_name = website["name"]
+        self.validator = website["validator"]
+        self.regexes: List[Pattern] = [re.compile(r) for r in website["regexes"]]
+
+        for r in self.regexes:
+            self.candidate_urls.append(f"https://github.com/search?q=(/{r.pattern}/)&type=code&ref=advsearch")
 
     def login_to_github(self):
         """
@@ -60,11 +55,9 @@ class APIKeyLeakageScanner:
         self.driver.implicitly_wait(3)
 
         self.cookies = CookieManager(self.driver)
-
-        cookie_exists = os.path.exists("cookies.pkl")
         self.driver.get("https://github.com/login")
 
-        if not cookie_exists:
+        if not COOKIE_FILE.exists():
             rich.print("🤗 No cookies found, please login to GitHub first")
             input("Press Enter after you logged in [Enter]? ")
             self.cookies.save()
@@ -103,9 +96,8 @@ class APIKeyLeakageScanner:
             for element in codes:
                 apis = []
                 # Check all regex for each code block
-                for regex, _, too_long in REGEX_LIST[2:]:
-                    if not too_long:
-                        apis.extend(regex.findall(element.text))
+                for regex in self.regexes:
+                    apis.extend(regex.findall(element.text))
 
                 if len(apis) == 0:
                     # Need to show full code. (because the api key is too long)
@@ -138,23 +130,23 @@ class APIKeyLeakageScanner:
             retry = 0
             while retry <= 3:
                 matches = []
-                for regex, _, _ in REGEX_LIST:
+                for regex in self.regexes:
                     matches.extend(regex.findall(self.driver.page_source))
-                matches = list(set(matches))
 
-                if len(matches) == 0:
+                api_keys = list(set(m.group(1) for m in matches if m.group(1)))
+
+                if len(api_keys) == 0:
                     rich.print(f"    ⚪️ No matches found in the expanded page, retrying [{retry}/3]...")
                     retry += 1
                     time.sleep(3)
                     continue
 
-                with self.dbmgr as mgr:
-                    new_apis = [api for api in matches if not mgr.key_exists(api)]
-                    new_apis = list(set(new_apis))
+                new_apis = [api for api in api_keys if not ApiKeyDao.key_exists(self.website_name, api)]
+                new_apis = list(set(new_apis))
                 apis_found.extend(new_apis)
-                rich.print(f"    🟢 Found {len(matches)} matches in the expanded page, adding them to the list")
-                for match in matches:
-                    rich.print(f"        '{match}'")
+                rich.print(f"    🟢 Found {len(api_keys)} api_keys in the expanded page, adding them to the list")
+                for k in api_keys:
+                    rich.print(f"        '{k}'")
                 break
 
         self.check_api_keys_and_save(apis_found)
@@ -163,17 +155,15 @@ class APIKeyLeakageScanner:
         """
         Check a list of API keys
         """
-        with self.dbmgr as mgr:
-            unique_keys = list(set(keys))
-            unique_keys = [api for api in unique_keys if not mgr.key_exists(api)]
+        unique_keys = list(set(keys))
+        unique_keys = [api for api in unique_keys if not ApiKeyDao.key_exists(self.website_name, api)]
 
         with ThreadPoolExecutor(max_workers=10) as executor:
-            results = list(executor.map(check_key, unique_keys))
-            with self.dbmgr as mgr:
-                for idx, result in enumerate(results):
-                    mgr.insert(unique_keys[idx], result)
+            validate_results = list(executor.map(self.validator, unique_keys))
+            for idx, result in enumerate(validate_results):
+                ApiKeyDao.add_one(self.website_name, unique_keys[idx], result)
 
-    def search(self, from_iter: int | None = None):
+    def search(self):
         """
         Search for API keys, and save the results to the database
         """
@@ -184,37 +174,26 @@ class APIKeyLeakageScanner:
             desc="🔍 Searching ...",
         )
 
-        if from_iter is None:
-            from_iter = self.progress.load(total=total)
-
         for idx, url in enumerate(self.candidate_urls):
-            if idx < from_iter:
-                pbar.update()
-                time.sleep(0.05)  # let tqdm print the bar
-                logging.debug("⚪️ Skip %s", url)
-                continue
             self._process_url(url)
             self.progress.save(idx, total)
             logging.debug("🔍 Finished %s", url)
             pbar.update()
         pbar.close()
 
-    def deduplication(self):
-        with self.dbmgr as mgr:
-            mgr.deduplicate()
+    def valid_existed_keys(self):
+        last_id = 0
+        while True:
+            keys = get_all_keys(self.website_name, last_id=last_id)
+            if not keys:
+                break
 
-    def update_existed_keys(self):
-        with self.dbmgr as mgr:
-            rich.print("🔄 Updating existed keys")
-            keys = mgr.all_keys()
             for key in tqdm(keys, desc="🔄 Updating existed keys ..."):
-                result = check_key(key[0])
-                mgr.delete(key[0])
-                mgr.insert(key[0], result)
+                result = self.validator(key.api_key)
+                ApiKeyDao.update_one(key.id, result)
 
-    def all_available_keys(self) -> list:
-        with self.dbmgr as mgr:
-            return mgr.all_keys()
+            last_id = keys[-1].id
+
 
     def __del__(self):
         if hasattr(self, "driver") and self.driver is not None:
