@@ -144,8 +144,7 @@ class APIKeyLeakageScanner:
                     time.sleep(3)
                     continue
 
-                new_apis = [api for api in api_keys if not ApiKeyDao.key_exists(self.website_name, api)]
-                new_apis = list(set(new_apis))
+                new_apis = list(set(api_keys))
                 apis_found.extend(new_apis)
                 ApiKeyDao.batch_add(self.website_name, new_apis)
                 rich.print(f"    🟢 Found {len(api_keys)} api_keys in the expanded page, adding them to the list")

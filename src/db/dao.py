@@ -8,13 +8,6 @@ from src.models import ValidatedResult, ApiKeyStatus
 
 class ApiKeyDao:
     @staticmethod
-    def key_exists(website_name: str, api_key: str):
-        with DbSession() as session:
-            return session.query(ApiKey.id) \
-                .filter(ApiKey.website == website_name, ApiKey.api_key == api_key) \
-                .scalar() is not None
-
-    @staticmethod
     def batch_add(website_name: str, api_keys: List[str]):
         api_keys2 = list(set(api_keys))
         with DbSession() as session:
