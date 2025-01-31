@@ -11,6 +11,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 from tqdm import tqdm
+from bs4 import BeautifulSoup
 
 from src.configs import SELENIUM_REMOTE_ENABLED, SELENIUM_CHROME_BASE_URL, COOKIE_FILE
 from src.db.dao import ApiKeyDao
@@ -96,8 +97,9 @@ class APIKeyLeakageScanner:
             for element in codes:
                 apis = []
                 # Check all regex for each code block
+                text = element.get_attribute('textContent')
                 for regex in self.regexes:
-                    apis.extend(regex.findall(element.text))
+                    apis.extend(regex.findall(text))
 
                 if len(apis) == 0:
                     # Need to show full code. (because the api key is too long)
@@ -129,28 +131,23 @@ class APIKeyLeakageScanner:
             self.driver.get(url)
             time.sleep(3) # TODO: find a better way to wait for the page to load
 
-            retry = 0
-            while retry <= 3:
-                matches = []
-                for regex in self.regexes:
-                    matches.extend(regex.findall(self.driver.page_source))
+            matches = []
+            page_text = BeautifulSoup(self.driver.page_source).get_text()
+            for regex in self.regexes:
+                matches.extend(regex.findall(page_text))
 
-                api_keys = list(set(matches))
+            api_keys = list(set(matches))
+            if len(api_keys) == 0:
+                rich.print(f"    ⚪️ No matches found in the expanded page...")
+                time.sleep(3)
 
-                if len(api_keys) == 0:
-                    rich.print(f"    ⚪️ No matches found in the expanded page, retrying [{retry}/3]...")
-                    retry += 1
-                    time.sleep(3)
-                    continue
+            new_apis = list(set(api_keys))
+            apis_found.extend(new_apis)
+            ApiKeyDao.batch_add(self.website_name, new_apis)
+            rich.print(f"    🟢 Found {len(api_keys)} api_keys in the expanded page, adding them to the list")
+            for k in api_keys:
+                rich.print(f"        '{k}'")
 
-                new_apis = list(set(api_keys))
-                apis_found.extend(new_apis)
-                ApiKeyDao.batch_add(self.website_name, new_apis)
-                rich.print(f"    🟢 Found {len(api_keys)} api_keys in the expanded page, adding them to the list")
-                for k in api_keys:
-                    rich.print(f"        '{k}'")
-
-                break
 
     def search(self):
         """
@@ -166,7 +163,7 @@ class APIKeyLeakageScanner:
         for idx, url in enumerate(self.candidate_urls):
             self._process_url(url)
             self.progress.save(idx, total)
-            logging.debug("🔍 Finished %s", url)
+            logging.info("🔍 Finished %s", url)
             pbar.update()
         pbar.close()
 
