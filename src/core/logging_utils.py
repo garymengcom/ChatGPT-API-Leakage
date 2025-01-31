@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta, timezone
 import logging
 
-from src.configs import LOG_DIR
+from src.core.configs import LOG_DIR
 
 
 def get_now():

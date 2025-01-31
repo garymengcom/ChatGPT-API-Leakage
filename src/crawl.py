@@ -1,17 +1,17 @@
 import logging
 import rich
 
-from src.configs import WEBSITES
-from src.core import APIKeyLeakageScanner
+from src.core.configs import WEBSITES
+from src.core.crawler_service import APIKeyLeakageScanner
 from src.db.dao import ApiKeyDao
-from src.logging_utils import init_logging
+from src.core.logging_utils import init_logging
 
 httpx_logger = logging.getLogger("httpx")
 httpx_logger.setLevel(logging.WARNING)
 
 
 if __name__ == "__main__":
-    init_logging("api_key_leakage_scanner")
+    init_logging("crawling")
     for website in WEBSITES:
         service = APIKeyLeakageScanner(website)
 

@@ -3,7 +3,7 @@ from sqlalchemy import Column, Integer, String, DateTime, func
 from sqlalchemy import UniqueConstraint
 
 from src.db.engine import Base, DbEngine
-from src.models import ApiKeyStatus
+from src.core.models import ApiKeyStatus
 
 
 class ApiKey(Base):

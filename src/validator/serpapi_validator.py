@@ -1,6 +1,6 @@
 import requests
 
-from src.models import ValidatedResult, ApiKeyStatus
+from src.core.models import ValidatedResult, ApiKeyStatus
 from src.validator.base import BaseValidator
 
 

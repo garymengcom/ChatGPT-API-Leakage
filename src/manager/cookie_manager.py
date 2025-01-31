@@ -5,7 +5,7 @@ import sys
 from selenium.common import UnableToSetCookieException
 from selenium.webdriver.common.by import By
 
-from src.configs import COOKIE_FILE
+from src.core.configs import COOKIE_FILE
 
 
 class CookieManager:

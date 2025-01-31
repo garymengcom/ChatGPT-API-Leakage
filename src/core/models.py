@@ -1,4 +1,6 @@
 from enum import Enum
+from re import Pattern
+
 from pydantic import BaseModel
 
 
@@ -13,3 +15,8 @@ class ValidatedResult(BaseModel):
     valid: ApiKeyStatus
     total: int
     remaining: int
+
+
+class UrlRegex(BaseModel):
+    url: str
+    regex: Pattern

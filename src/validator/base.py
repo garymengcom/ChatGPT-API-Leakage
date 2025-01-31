@@ -1,6 +1,6 @@
 from abc import abstractmethod
 
-from src.models import ValidatedResult
+from src.core.models import ValidatedResult
 
 
 class BaseValidator:

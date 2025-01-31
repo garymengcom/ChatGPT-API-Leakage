@@ -2,16 +2,15 @@ from typing import List
 
 from src.db.engine import DbSession
 from src.db.entity import ApiKey
-from src.logging_utils import get_today, get_now
-from src.models import ValidatedResult, ApiKeyStatus
+from src.core.logging_utils import get_today, get_now
+from src.core.models import ValidatedResult, ApiKeyStatus
 
 
 class ApiKeyDao:
     @staticmethod
     def batch_add(website_name: str, api_keys: List[str]):
-        api_keys2 = list(set(api_keys))
         with DbSession() as session:
-            for api_key in api_keys2:
+            for api_key in api_keys:
                 if not session.query(ApiKey.id).filter(ApiKey.website == website_name, ApiKey.api_key == api_key).scalar():
                     session.add(ApiKey(
                         website=website_name,
@@ -57,5 +56,5 @@ class ApiKeyDao:
     def get_valid_key_count(website_name: str) -> int:
         with DbSession() as session:
             return session.query(ApiKey) \
-                .filter(ApiKey.website == website_name, ApiKey.valid.is_(True)) \
+                .filter(ApiKey.website == website_name, ApiKey.status.is_(ApiKeyStatus.VALID.value)) \
                 .count()

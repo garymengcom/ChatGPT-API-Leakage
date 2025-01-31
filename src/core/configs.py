@@ -6,7 +6,7 @@ from pathlib import Path
 
 from src.validator.serpapi_validator import SerpApiValidator
 
-TMP_DIR = Path(__file__).parent.parent.joinpath("tmp")
+TMP_DIR = Path(__file__).parent.parent.parent.joinpath("tmp")
 LOG_DIR = TMP_DIR.joinpath("logs")
 COOKIE_FILE = TMP_DIR.joinpath("cookies.pkl")
 
@@ -19,10 +19,10 @@ WEBSITES = [
     {
         "name": "serpapi",
         "regexes": [
-            "SERPAPI_KEY\s*=\s*['\"]?(\w{64})['\"]?",
-            "SERPAPI_KEY\s*=\s*os\.getenv\(['\"]SERPAPI_KEY['\"],\s['\"](\w{64})['\"]",
-            "SERPAPI_API_KEY\s*=\s*['\"]?(\w{64})['\"]?",
-            "SERPAPI_API_KEY\s*=\s*os\.getenv\(['\"]SERPAPI_API_KEY['\"],\s['\"](\w{64})['\"]",
+            "SERPAPI_KEY\s*=\s*['\"]?\s*(\w{64})\s*['\"]?",
+            "SERPAPI_KEY\s*=\s*os\.getenv\(['\"]\s*SERPAPI_KEY['\"],\s['\"](\w{64})\s*['\"]",
+            "SERPAPI_API_KEY\s*=\s*['\"]?\s*(\w{64})\s*['\"]?",
+            "SERPAPI_API_KEY\s*=\s*os\.getenv\(['\"]\s*SERPAPI_API_KEY['\"],\s['\"](\w{64})\s*['\"]",
 
         ],
         "validator": SerpApiValidator
