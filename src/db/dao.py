@@ -37,6 +37,7 @@ class ApiKeyDao:
         with DbSession() as session:
             return session.query(ApiKey) \
                 .filter(ApiKey.id > last_id, ApiKey.website == website_name) \
+                .order_by(ApiKey.id.asc()) \
                 .limit(batch_size)\
                 .all()
 
