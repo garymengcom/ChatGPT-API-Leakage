@@ -56,5 +56,5 @@ class ApiKeyDao:
     def get_valid_key_count(website_name: str) -> int:
         with DbSession() as session:
             return session.query(ApiKey) \
-                .filter(ApiKey.website == website_name, ApiKey.status.is_(ApiKeyStatus.VALID.value)) \
+                .filter(ApiKey.website == website_name, ApiKey.status == ApiKeyStatus.VALID.value) \
                 .count()
