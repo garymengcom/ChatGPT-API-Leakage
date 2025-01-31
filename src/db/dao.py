@@ -2,7 +2,7 @@ from typing import List
 
 from src.db.engine import DbSession
 from src.db.entity import ApiKey
-from src.core.logging_utils import get_today, get_now
+from src.core.logging_utils import get_now
 from src.core.models import ValidatedResult, ApiKeyStatus
 
 
@@ -17,7 +17,10 @@ class ApiKeyDao:
                         api_key=api_key,
                         status=ApiKeyStatus.ADDED.value,
                         remaining=0,
-                        last_validated_at=get_now()))
+                        last_validated_at=get_now(),
+                        created_at=get_now(),
+                        updated_at=get_now()
+                    ))
             session.commit()
 
     @staticmethod
@@ -29,7 +32,9 @@ class ApiKeyDao:
                     ApiKey.status: validated_result.status.value,
                     ApiKey.total: validated_result.total,
                     ApiKey.remaining: validated_result.remaining,
-                    ApiKey.last_validated_at: get_now()})
+                    ApiKey.last_validated_at: get_now(),
+                    ApiKey.updated_at: get_now(),
+            })
             session.commit()
 
     @staticmethod
