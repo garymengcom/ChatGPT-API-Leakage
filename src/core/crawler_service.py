@@ -26,13 +26,12 @@ class APIKeyLeakageScanner:
         self.driver: webdriver.Chrome | None = None
         self.cookies: CookieManager | None = None
 
-        self.candidate_urls = []
         self.website_name = website["name"]
-        self.validator = website["validator"]()
-        self.regexes: List[Pattern] = [re.compile(r, re.IGNORECASE) for r in website["regexes"]]
+
+        regexes: List[Pattern] = [re.compile(r, re.IGNORECASE) for r in website["regexes"]]
         self.url_regexes: List[UrlRegex] = [
             UrlRegex(regex=r, url=f"https://github.com/search?q=(/{r.pattern}/)&type=code&ref=advsearch")
-            for r in self.regexes
+            for r in regexes
         ]
 
     def login_to_github(self):

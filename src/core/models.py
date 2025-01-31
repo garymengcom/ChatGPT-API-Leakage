@@ -12,7 +12,7 @@ class ApiKeyStatus(Enum):
 
 class ValidatedResult(BaseModel):
     key: str
-    valid: ApiKeyStatus
+    status: ApiKeyStatus
     total: int
     remaining: int
 

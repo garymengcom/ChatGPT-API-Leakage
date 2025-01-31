@@ -21,25 +21,12 @@ class ApiKeyDao:
             session.commit()
 
     @staticmethod
-    def add_one(website_name: str, api_key: str, validated_result: ValidatedResult):
-        with DbSession() as session:
-            if not session.query(ApiKey.id).filter(ApiKey.website == website_name, ApiKey.api_key == api_key).scalar():
-                session.add(ApiKey(
-                    website=website_name,
-                    api_key=api_key,
-                    status=validated_result.valid,
-                    total=validated_result.total,
-                    remaining=validated_result.remaining,
-                    last_validated_at=get_now()))
-                session.commit()
-
-    @staticmethod
     def update_one(id: int, validated_result: ValidatedResult):
         with DbSession() as session:
             session.query(ApiKey) \
                 .filter(ApiKey.id == id) \
                 .update({
-                    ApiKey.valid: validated_result.valid,
+                    ApiKey.status: validated_result.status.value,
                     ApiKey.total: validated_result.total,
                     ApiKey.remaining: validated_result.remaining,
                     ApiKey.last_validated_at: get_now()})

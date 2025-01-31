@@ -11,7 +11,7 @@ def valid_existed_keys(website):
             break
 
         for key in keys:
-            result = website["validator"].validate(key.api_key)
+            result = website["validator"](key.api_key)
             ApiKeyDao.update_one(key.id, result)
 
         last_id = keys[-1].id

@@ -4,7 +4,7 @@ This module is used to store the configurations.
 import os
 from pathlib import Path
 
-from src.validator.serpapi_validator import SerpApiValidator
+from src.validator.serpapi_validator import serpapi_validate
 
 TMP_DIR = Path(__file__).parent.parent.parent.joinpath("tmp")
 LOG_DIR = TMP_DIR.joinpath("logs")
@@ -25,6 +25,6 @@ WEBSITES = [
             "SERPAPI_API_KEY\s*=\s*os\.getenv\(['\"]\s*SERPAPI_API_KEY['\"],\s['\"](\w{64})\s*['\"]",
 
         ],
-        "validator": SerpApiValidator
+        "validator": serpapi_validate
     }
 ]
