@@ -13,7 +13,8 @@ class ApiKey(Base):
 
     website = Column(String(20), nullable=False)
     api_key = Column(String(512), nullable=False)
-    status = Column(Integer, nullable=False, default=ApiKeyStatus.ADDED.value)
+    status = Column(String(10), nullable=False, default=ApiKeyStatus.ADDED.value)
+    total = Column(Integer, nullable=False, default=0)
     remaining = Column(Integer, nullable=False, default=0)
     last_validated_at = Column(DateTime, nullable=False, default=datetime.datetime.now, server_default=func.current_timestamp())
 

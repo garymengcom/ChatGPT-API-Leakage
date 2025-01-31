@@ -29,6 +29,7 @@ class ApiKeyDao:
                     website=website_name,
                     api_key=api_key,
                     status=validated_result.valid,
+                    total=validated_result.total,
                     remaining=validated_result.remaining,
                     last_validated_at=get_now()))
                 session.commit()
@@ -40,6 +41,7 @@ class ApiKeyDao:
                 .filter(ApiKey.id == id) \
                 .update({
                     ApiKey.valid: validated_result.valid,
+                    ApiKey.total: validated_result.total,
                     ApiKey.remaining: validated_result.remaining,
                     ApiKey.last_validated_at: get_now()})
             session.commit()

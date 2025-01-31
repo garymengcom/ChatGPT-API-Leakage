@@ -2,7 +2,6 @@
 This module is used to store the configurations.
 """
 import os
-import re
 from pathlib import Path
 
 from src.validator.serpapi_validator import SerpApiValidator
