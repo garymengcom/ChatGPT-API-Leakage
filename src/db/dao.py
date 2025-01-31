@@ -33,11 +33,12 @@ class ApiKeyDao:
             session.commit()
 
     @staticmethod
-    def get_all_keys(website_name: str, last_id: int, batch_size: int = 100) -> List[ApiKey]:
+    def get_all_keys(website_name: str, last_id: int, batch_size: int = 10) -> List[ApiKey]:
         with DbSession() as session:
             return session.query(ApiKey) \
                 .filter(ApiKey.id > last_id, ApiKey.website == website_name) \
-                .limit(batch_size)
+                .limit(batch_size)\
+                .all()
 
     @staticmethod
     def get_valid_key_count(website_name: str) -> int:

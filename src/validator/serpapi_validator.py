@@ -10,7 +10,7 @@ def serpapi_validate(key: str) -> ValidatedResult:
     if response.status_code != 200:
         return ValidatedResult(
             key=key,
-            status=ApiKeyStatus.INVALID.value,
+            status=ApiKeyStatus.INVALID,
             total=0,
             remaining=0,
         )
@@ -18,7 +18,7 @@ def serpapi_validate(key: str) -> ValidatedResult:
     result = response.json()
     return ValidatedResult(
         key=key,
-        status=ApiKeyStatus.VALID.value,
+        status=ApiKeyStatus.VALID,
         total=result.get("searches_per_month", 0),
         remaining=result.get("plan_searches_left", 0),
     )
